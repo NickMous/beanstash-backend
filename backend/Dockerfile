@@ -13,7 +13,7 @@ WORKDIR /app
 
 COPY --from=build /app/target/*.jar app.jar
 
-ADD https://repo1.maven.org/maven2/io/sentry/sentry-opentelemetry-agent/8.33.0/sentry-opentelemetry-agent-8.33.0.jar sentry-opentelemetry-agent.jar
+ADD https://repo1.maven.org/maven2/io/sentry/sentry-opentelemetry-agent/8.26.0/sentry-opentelemetry-agent-8.26.0.jar sentry-opentelemetry-agent.jar
 
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
