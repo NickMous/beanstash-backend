@@ -1,0 +1,12 @@
+---
+spring:
+  application:
+    name: beanstash-backend
+  docker:
+    compose:
+      enabled: true
+      file: ./backend/docker-compose.yaml
+  flyway:
+    placeholders:
+      app_user: ${SPRING_DATASOURCE_USERNAME}
+      app_password: ${SPRING_DATASOURCE_PASSWORD}

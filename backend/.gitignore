@@ -33,4 +33,7 @@ build/
 .vscode/
 
 ### Local configuration files ###
-application-local.properties
+src/main/resources/application-local.yaml
+
+### Docker ###
+/docker-compose.override.yaml
