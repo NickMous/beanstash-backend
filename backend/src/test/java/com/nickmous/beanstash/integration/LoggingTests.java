@@ -32,14 +32,14 @@ public class LoggingTests {
     @Test
     public void testAppCannotAddLogsManually() {
         // Arrange
-        long initialCount = auditLogRepository.count();
-
         User user = new User();
         user.setUsername("testuser");
         user.setPassword("testpassword");
         user.setFirstName("Test");
         user.setLastName("User");
         userRepository.save(user);
+
+        long initialCount = auditLogRepository.count();
 
         // Act
         AuditLog log = new AuditLog();
@@ -49,12 +49,14 @@ public class LoggingTests {
         log.setDetails("Manually created log entry");
         log.setVersion(1L);
         log.setTableName("test_table");
-        log.setRecordId(1L);
+        log.setRecordId("1");
 
         // Assert
         assertThrows(JpaSystemException.class, () -> auditLogRepository.save(log));
 
         long finalCount = auditLogRepository.count();
+        Iterable<AuditLog> log1 = auditLogRepository.findAll();
+        System.out.println("test");
         assertEquals(initialCount, finalCount);
     }
 

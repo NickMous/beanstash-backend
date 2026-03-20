@@ -24,7 +24,7 @@ public class AuditLog {
     @ManyToOne(optional = false)
     private User actor;
     private String tableName;
-    private Long recordId;
+    private String recordId;
     private String details;
     private Long version;
 }
