@@ -31,6 +31,35 @@ public class LoggingTests {
 
     @Test
     public void testAppCannotAddLogsManually() {
+        // Arrange
+        long initialCount = auditLogRepository.count();
+
+        User user = new User();
+        user.setUsername("testuser");
+        user.setPassword("testpassword");
+        user.setFirstName("Test");
+        user.setLastName("User");
+        userRepository.save(user);
+
+        // Act
+        AuditLog log = new AuditLog();
+        log.setAction("CREATE");
+        log.setActor(user);
+        log.setLoggedAt(Instant.now());
+        log.setDetails("Manually created log entry");
+        log.setVersion(1L);
+        log.setTableName("test_table");
+        log.setRecordId(1L);
+
+        // Assert
+        assertThrows(JpaSystemException.class, () -> auditLogRepository.save(log));
+
+        long finalCount = auditLogRepository.count();
+        assertEquals(initialCount, finalCount);
+    }
+
+    @Test
+    public void testLogsAreBeingAddedByPostgresForUserTable() {
         // Given
         long initialCount = auditLogRepository.count();
 
@@ -41,19 +70,7 @@ public class LoggingTests {
         user.setLastName("User");
         userRepository.save(user);
 
-        AuditLog log = new AuditLog();
-        log.setAction("CREATE");
-        log.setActor(user);
-        log.setLoggedAt(Instant.now());
-        log.setDetails("Manually created log entry");
-        log.setVersion(1L);
-        log.setTableName("test_table");
-        log.setRecordId(1L);
-
-        assertThrows(JpaSystemException.class, () -> auditLogRepository.save(log));
-
-        // Then
         long finalCount = auditLogRepository.count();
-        assertEquals(initialCount, finalCount);
+        assertEquals(initialCount + 1, finalCount);
     }
 }
