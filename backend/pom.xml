@@ -200,6 +200,10 @@
 			<scope>runtime</scope>
 			<optional>true</optional>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-webauthn</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>

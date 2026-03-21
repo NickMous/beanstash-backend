@@ -58,10 +58,19 @@ BEGIN
 
     SELECT COALESCE(MAX(version), 0) + 1 INTO v_version
     FROM audit_log.audit_log
-    WHERE table_name = TG_TABLE_NAME AND record_id = COALESCE(NEW.id::TEXT, OLD.id::TEXT);
+    WHERE table_name = TG_TABLE_NAME AND record_id = COALESCE((row_to_json(NEW) ->> TG_ARGV[0])::TEXT, (row_to_json(OLD) ->> TG_ARGV[0])::TEXT);
 
     INSERT INTO audit_log.audit_log (id, action, logged_at, actor_id, table_name, record_id, details, version)
-    VALUES (nextval('audit_log.audit_log_seq'), v_action, NOW(), v_user_id, TG_TABLE_NAME, COALESCE(NEW.id::TEXT, OLD.id::TEXT), row_to_json(NEW)::TEXT, v_version);
+    VALUES (
+        nextval('audit_log.audit_log_seq'),
+        v_action,
+        NOW(),
+        v_user_id,
+        TG_TABLE_NAME,
+        COALESCE((row_to_json(NEW) ->> TG_ARGV[0])::TEXT, (row_to_json(OLD) ->> TG_ARGV[0])::TEXT),
+        row_to_json(NEW)::TEXT,
+        v_version
+   );
 
     RETURN NEW;
 end;
@@ -70,4 +79,4 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE TRIGGER user_audit_log_trigger
     AFTER INSERT OR UPDATE OR DELETE ON "user"
     FOR EACH ROW
-EXECUTE FUNCTION audit_log_trigger();
+EXECUTE FUNCTION audit_log_trigger('id');

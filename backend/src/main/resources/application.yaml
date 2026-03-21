@@ -10,3 +10,6 @@ spring:
     placeholders:
       app_user: ${SPRING_DATASOURCE_USERNAME}
       app_password: ${SPRING_DATASOURCE_PASSWORD}
+app:
+  url: http://localhost:8080
+  rp-id: localhost
