@@ -12,7 +12,7 @@ CREATE TABLE audit_log.audit_log
     actor_id   UUID   NOT NULL,
     table_name VARCHAR(255),
     record_id  TEXT,
-    details    VARCHAR(255),
+    details    TEXT,
     version    BIGINT,
     CONSTRAINT pk_audit_log PRIMARY KEY (id)
 );

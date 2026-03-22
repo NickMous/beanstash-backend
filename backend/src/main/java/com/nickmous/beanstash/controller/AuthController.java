@@ -1,0 +1,154 @@
+package com.nickmous.beanstash.controller;
+
+import com.nickmous.beanstash.controller.dto.LoginRequest;
+import com.nickmous.beanstash.controller.dto.PasskeyRegistrationOptionsRequest;
+import com.nickmous.beanstash.controller.dto.RegisterRequest;
+import com.nickmous.beanstash.controller.dto.VerifyTotpRequest;
+import com.nickmous.beanstash.domain.security.passkey.PasskeyRegistrationService;
+import com.nickmous.beanstash.domain.security.totp.TotpService;
+import com.nickmous.beanstash.domain.security.totp.TotpSetupResponse;
+import com.nickmous.beanstash.entity.User;
+import com.nickmous.beanstash.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.webauthn.api.PublicKeyCredentialCreationOptions;
+import org.springframework.security.web.webauthn.management.ImmutableRelyingPartyRegistrationRequest;
+import org.springframework.security.web.webauthn.management.RelyingPartyPublicKey;
+import org.springframework.security.web.webauthn.registration.HttpSessionPublicKeyCredentialCreationOptionsRepository;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/auth")
+@AllArgsConstructor
+public class AuthController {
+
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final TotpService totpService;
+    private final PasskeyRegistrationService passkeyRegistrationService;
+
+    @PostMapping("/register")
+    public ResponseEntity<TotpSetupResponse> register(@Valid @RequestBody RegisterRequest request) {
+        if (userRepository.findByUsername(request.username()) != null) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+
+        User user = new User();
+        user.setUsername(request.username());
+        user.setEmail(request.email());
+        user.setPassword(passwordEncoder.encode(request.password()));
+        user.setFirstName(request.firstName());
+        user.setLastName(request.lastName());
+        userRepository.save(user);
+
+        TotpSetupResponse totpSetup = totpService.setupTotp(user);
+        return ResponseEntity.ok(totpSetup);
+    }
+
+    @PostMapping("/register/verify-totp")
+    public ResponseEntity<Void> verifyTotp(@Valid @RequestBody VerifyTotpRequest request) {
+        User user = userRepository.findByUsername(request.username());
+        if (user == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        if (totpService.verifyAndEnableTotp(user, request.code())) {
+            return ResponseEntity.ok().build();
+        }
+
+        return ResponseEntity.badRequest().build();
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
+        User user = userRepository.findByUsername(request.username());
+        if (user == null || user.getPassword() == null || !passwordEncoder.matches(request.password(), user.getPassword())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        if (user.isTotpEnabled()) {
+            if (request.totpCode() == null || !totpService.verifyCode(user, request.totpCode())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+        }
+
+        UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
+            .username(user.getUsername())
+            .password(user.getPassword())
+            .build();
+
+        UsernamePasswordAuthenticationToken auth =
+            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(auth);
+        SecurityContextHolder.setContext(context);
+        httpRequest.getSession(true)
+            .setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/register/passkey/options")
+    public ResponseEntity<PublicKeyCredentialCreationOptions> passkeyRegistrationOptions(
+            @Valid @RequestBody PasskeyRegistrationOptionsRequest request,
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse) {
+        try {
+            PublicKeyCredentialCreationOptions options = passkeyRegistrationService.requestRegistrationOptions(
+                request.username(), request.email(), request.firstName(), request.lastName());
+
+            var optionsRepository = new HttpSessionPublicKeyCredentialCreationOptionsRepository();
+            optionsRepository.save(httpRequest, httpResponse, options);
+
+            return ResponseEntity.ok(options);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+    }
+
+    @PostMapping("/register/passkey")
+    public ResponseEntity<Void> completePasskeyRegistration(
+            @RequestBody RelyingPartyPublicKey publicKey,
+            HttpServletRequest httpRequest) {
+        var optionsRepository = new HttpSessionPublicKeyCredentialCreationOptionsRepository();
+        PublicKeyCredentialCreationOptions options = optionsRepository.load(httpRequest);
+
+        if (options == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        var registrationRequest = new ImmutableRelyingPartyRegistrationRequest(options, publicKey);
+        passkeyRegistrationService.completeRegistration(registrationRequest);
+
+        String username = options.getUser().getName();
+        UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
+            .username(username)
+            .password("")
+            .build();
+
+        UsernamePasswordAuthenticationToken auth =
+            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(auth);
+        SecurityContextHolder.setContext(context);
+        httpRequest.getSession(true)
+            .setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
+
+        return ResponseEntity.ok().build();
+    }
+}
