@@ -55,8 +55,6 @@ public class LoggingTests {
         assertThrows(JpaSystemException.class, () -> auditLogRepository.save(log));
 
         long finalCount = auditLogRepository.count();
-        Iterable<AuditLog> log1 = auditLogRepository.findAll();
-        System.out.println("test");
         assertEquals(initialCount, finalCount);
     }
 

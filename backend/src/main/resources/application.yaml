@@ -4,7 +4,7 @@ spring:
     name: beanstash-backend
   docker:
     compose:
-      enabled: true
+      enabled: false
       file: ./backend/docker-compose.yaml
   flyway:
     placeholders:

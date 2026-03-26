@@ -96,7 +96,9 @@ public class AuthController {
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(auth);
         SecurityContextHolder.setContext(context);
-        httpRequest.getSession(true)
+        httpRequest.getSession(true);
+        httpRequest.changeSessionId();
+        httpRequest.getSession()
             .setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
 
         return ResponseEntity.ok().build();
@@ -146,7 +148,9 @@ public class AuthController {
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(auth);
         SecurityContextHolder.setContext(context);
-        httpRequest.getSession(true)
+        httpRequest.getSession(true);
+        httpRequest.changeSessionId();
+        httpRequest.getSession()
             .setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
 
         return ResponseEntity.ok().build();

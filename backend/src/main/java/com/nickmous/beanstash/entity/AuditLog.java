@@ -12,11 +12,11 @@ import lombok.Data;
 @Entity
 @Data
 @Table(name = "audit_log", schema = "audit_log")
-@SequenceGenerator(sequenceName = "audit_log.audit_log_seq")
+@SequenceGenerator(name = "audit_log_seq", sequenceName = "audit_log.audit_log_seq")
 public class AuditLog {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = jakarta.persistence.GenerationType.SEQUENCE, generator = "audit_log_seq")
     private Long id;
     private String action;
     private Instant loggedAt;

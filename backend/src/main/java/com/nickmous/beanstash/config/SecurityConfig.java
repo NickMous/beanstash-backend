@@ -36,10 +36,10 @@ public class SecurityConfig {
                 -> authorize
                 .requestMatchers("/auth/**")
                 .permitAll()
-                .requestMatchers("/")
-                .hasAuthority("USER")
                 .requestMatchers("/actuator/health")
                 .permitAll()
+                .requestMatchers("/")
+                .authenticated()
                 .anyRequest()
                 .authenticated()
             )
