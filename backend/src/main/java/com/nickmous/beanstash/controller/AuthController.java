@@ -5,6 +5,7 @@ import com.nickmous.beanstash.controller.dto.PasskeyRegistrationOptionsRequest;
 import com.nickmous.beanstash.controller.dto.RegisterRequest;
 import com.nickmous.beanstash.controller.dto.VerifyTotpRequest;
 import com.nickmous.beanstash.domain.security.AuthorityService;
+import com.nickmous.beanstash.domain.security.CustomUserDetailsService;
 import com.nickmous.beanstash.domain.security.passkey.PasskeyRegistrationService;
 import com.nickmous.beanstash.domain.security.totp.TotpService;
 import com.nickmous.beanstash.domain.security.totp.TotpSetupResponse;
@@ -41,6 +42,7 @@ public class AuthController {
     private final TotpService totpService;
     private final PasskeyRegistrationService passkeyRegistrationService;
     private final AuthorityService authorityService;
+    private final CustomUserDetailsService customUserDetailsService;
 
     @PostMapping("/register")
     public ResponseEntity<TotpSetupResponse> register(@Valid @RequestBody RegisterRequest request) {
@@ -87,10 +89,7 @@ public class AuthController {
             }
         }
 
-        UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
-            .username(user.getUsername())
-            .password(user.getPassword())
-            .build();
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(user.getUsername());
 
         UsernamePasswordAuthenticationToken auth =
             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
@@ -139,10 +138,7 @@ public class AuthController {
         passkeyRegistrationService.completeRegistration(registrationRequest);
 
         String username = options.getUser().getName();
-        UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
-            .username(username)
-            .password("")
-            .build();
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
 
         UsernamePasswordAuthenticationToken auth =
             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
