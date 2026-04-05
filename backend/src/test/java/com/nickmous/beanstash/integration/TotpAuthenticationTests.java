@@ -44,8 +44,9 @@ public class TotpAuthenticationTests {
 
     @BeforeEach
     void setUp() throws Exception {
-        if (userRepository.findByUsername(USERNAME) != null) {
-            return;
+        User existingUser = userRepository.findByUsername(USERNAME);
+        if (existingUser != null) {
+            userRepository.delete(existingUser);
         }
 
         var registerRequest = new RegisterRequest(USERNAME, "login@example.com", PASSWORD, "Login", "User");

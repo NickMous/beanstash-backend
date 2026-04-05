@@ -34,13 +34,17 @@ public class PasskeyRegistrationService {
         user.setEmail(email);
         user.setFirstName(firstName);
         user.setLastName(lastName);
-        userRepository.save(user);
 
         Authentication auth = new UsernamePasswordAuthenticationToken(username, null, List.of());
 
         PublicKeyCredentialCreationOptionsRequest optionsRequest = () -> auth;
 
-        return rpOps.createPublicKeyCredentialCreationOptions(optionsRequest);
+        PublicKeyCredentialCreationOptions creationOptions =
+                rpOps.createPublicKeyCredentialCreationOptions(optionsRequest);
+
+        userRepository.save(user);
+
+        return creationOptions;
     }
 
     public void completeRegistration(RelyingPartyRegistrationRequest request) {

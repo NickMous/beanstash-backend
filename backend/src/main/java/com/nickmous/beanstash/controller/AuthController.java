@@ -52,7 +52,6 @@ public class AuthController {
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setFirstName(request.firstName());
         user.setLastName(request.lastName());
-        userRepository.save(user);
 
         TotpSetupResponse totpSetup = totpService.setupTotp(user);
         return ResponseEntity.ok(totpSetup);

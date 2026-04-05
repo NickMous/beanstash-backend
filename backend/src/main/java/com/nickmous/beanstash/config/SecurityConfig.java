@@ -30,7 +30,7 @@ public class SecurityConfig {
     private String rpId;
 
     @Bean
-    public SecurityFilterChain filterChain(org.springframework.security.config.annotation.web.builders.HttpSecurity http) {
+    public SecurityFilterChain filterChain(org.springframework.security.config.annotation.web.builders.HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests((authorize)
                 -> authorize

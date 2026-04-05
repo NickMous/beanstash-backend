@@ -5,6 +5,7 @@ import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.Instant;
@@ -27,13 +28,18 @@ public final class Totp {
     }
 
     public static boolean verifyCode(byte[] secret, String code, Instant time, int windowSize) {
+        if (secret == null || secret.length == 0) {
+            return false;
+        }
         if (code == null || code.isEmpty()) {
             return false;
         }
         long currentCounter = time.getEpochSecond() / TIME_STEP_SECONDS;
         for (long i = -windowSize; i <= windowSize; i++) {
             String candidate = generateCodeForCounter(secret, currentCounter + i);
-            if (candidate.equals(code)) {
+            if (MessageDigest.isEqual(
+                    candidate.getBytes(StandardCharsets.UTF_8),
+                    code.getBytes(StandardCharsets.UTF_8))) {
                 return true;
             }
         }

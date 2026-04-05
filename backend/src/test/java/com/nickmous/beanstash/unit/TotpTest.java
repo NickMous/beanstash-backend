@@ -77,6 +77,16 @@ class TotpTest {
     }
 
     @Test
+    void verifyCode_returnsFalseWhenSecretIsNull() {
+        assertThat(Totp.verifyCode(null, "123456", Instant.now(), 1)).isFalse();
+    }
+
+    @Test
+    void verifyCode_returnsFalseWhenSecretIsEmpty() {
+        assertThat(Totp.verifyCode(new byte[0], "123456", Instant.now(), 1)).isFalse();
+    }
+
+    @Test
     void generateSecret_returns20Bytes() {
         byte[] secret = Totp.generateSecret();
         assertThat(secret).hasSize(20);

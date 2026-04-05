@@ -1,6 +1,7 @@
 package com.nickmous.beanstash.integration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.nickmous.beanstash.config.UserContextHolder;
 import com.nickmous.beanstash.configuration.TestcontainersConfig;
@@ -76,6 +77,7 @@ public class AuditUserContextTests {
             }
         }
 
+        assertNotNull(log, "Expected audit log entry for target user but none was found");
         assertEquals(savedActor.getId(), log.getActor().getId());
     }
 }

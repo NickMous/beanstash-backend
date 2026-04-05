@@ -51,7 +51,7 @@ BEGIN
     END IF;
 
     -- System user UUID (you can seed this in the user table or just use it as a convention)
-    v_user_id = COALESCE(
+    v_user_id := COALESCE(
             NULLIF(current_setting('app.current_user_id', true), '')::UUID,
             '00000000-0000-0000-0000-000000000000'::UUID
     );
