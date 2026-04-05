@@ -1,0 +1,14 @@
+---
+spring:
+  flyway:
+    placeholders:
+      app_user: app_user
+      app_password: app_password
+    user: postgres
+    password: postgres
+  datasource:
+    username: app_user
+    password: app_password
+app:
+  url: http://localhost:8080
+  rp-id: localhost

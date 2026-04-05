@@ -5,3 +5,5 @@ metadata:
   name: beanstash-config
 data:
   NEXT_PUBLIC_API_URL: https://staging.api.beanstash.org
+  APP_URL: https://staging.beanstash.org
+  APP_RP_ID: staging.beanstash.org

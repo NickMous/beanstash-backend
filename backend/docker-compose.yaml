@@ -1,0 +1,14 @@
+---
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: beanstash
+      APP_USER: beanstash
+      APP_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db/init.sh:/docker-entrypoint-initdb.d/init.sh
