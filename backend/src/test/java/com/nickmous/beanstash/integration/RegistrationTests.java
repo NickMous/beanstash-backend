@@ -12,6 +12,7 @@ import com.nickmous.beanstash.controller.dto.RegisterRequest;
 import com.nickmous.beanstash.controller.dto.VerifyTotpRequest;
 import com.nickmous.beanstash.domain.security.totp.Totp;
 import com.nickmous.beanstash.entity.User;
+import com.nickmous.beanstash.repository.AuthorityRepository;
 import com.nickmous.beanstash.repository.UserRepository;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
@@ -38,6 +39,9 @@ public class RegistrationTests {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private AuthorityRepository authorityRepository;
 
     @Test
     void register_withValidData_returnsTotpSetup() throws Exception {
@@ -116,6 +120,21 @@ public class RegistrationTests {
 
         User updatedUser = userRepository.findByUsername("verifyuser");
         assertThat(updatedUser.isTotpEnabled()).isTrue();
+    }
+
+    @Test
+    void register_withValidData_assignsDefaultAuthority() throws Exception {
+        var request = new RegisterRequest("authdefaultuser", "authdefault@example.com", "securepassword1", "Auth", "Default");
+
+        mockMvc.perform(post("/auth/register")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isOk());
+
+        User user = userRepository.findByUsername("authdefaultuser");
+        assertThat(user.getAuthorities()).hasSize(1);
+        assertThat(user.getAuthorities().iterator().next().getName()).isEqualTo("package:read");
     }
 
     @Test
