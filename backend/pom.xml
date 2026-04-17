@@ -38,7 +38,7 @@
 		<sentry.upload.skip>true</sentry.upload.skip>
 		<error-prone.version>2.48.0</error-prone.version>
 		<mapstruct.version>1.6.3</mapstruct.version>
-		<springdoc.version>3.0.2</springdoc.version>
+		<springdoc.version>3.0.3</springdoc.version>
 		<testcontainers.version>1.21.4</testcontainers.version>
 		<rest-assured.version>6.0.0</rest-assured.version>
 	</properties>
